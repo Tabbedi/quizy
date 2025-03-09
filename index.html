@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+            background-image: url('bent.png');
+            background-repeat: repeat; /* Gjentar bildet både horisontalt og vertikalt */
+            background-size: auto; /* Sørger for at bildet beholder sin opprinnelige størrelse */
+        }
+        .quiz-container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .question {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h2>Database Quiz</h2>
+        <form id="quizForm">
+            <div id="questions"></div>
+            <button type="submit">Send inn</button>
+        </form>
+        <div id="results" class="result"></div>
+    </div>
+
+    <script>
+        const quizData = [
+            { question: "3. Normalform er", options: ["Det skal være noen determinering fra en ikke-kandidatnøkkel til en annen primærnøkkel.", "Det skal alltid være noen determinering fra en ikke-primærnøkkel til en annen ikke-primærnøkkel.", "Det skal ikke være noen determinering fra en ikke-primærnøkkel til en annen ikke-primærnøkkel."], answer: 2 },
+            { question: "Hva betyr 1:1?", options: ["En til en", "En til mange", "Mange til en"], answer: 0 },
+            { question: "Hvorfor skal vi normalisere?", options: ["For å redusere redundans og unngå inkonsistente data ved å dele opp data i mindre, logiske tabeller.", "For å legge til flere kolonner i en tabell og gjøre den mer detaljert", "For å øke antall relasjoner og gjøre databasen mer kompleks"], answer: 0 },
+            { question: "Hva er en entitet?", options: ["Det vi lagrer data om", "Det vi lagrer attributter om", "Det vi lagrerer relasjoner om"], answer: 0 },
+            { question: "Hva står KIT for?", options: ["Konfidensialitet, informasjon og tankekart", "Konfidensialitet, it og tilgang", "Konfidensialitet, integritet og tilgang"], answer: 2 },
+            { question: "Hva er en relasjon?", options: ["En kobling mellom to databser", "En kobling mellom to attributter", "En kobling mellom to entiteter"], answer: 2 },
+            { question: "Hva betyr 1:M?", options: ["Mengde til mengde", "Mange til mange", "1 til mange"], answer: 2 },
+            { question: "2. normalform er?", options: ["Hvis et attributt har en sammensatt primærnøkkel, skal hele den sammensatte primærnøkkelen ikke determinere de andre attributtene og ikke bare en del av den.", "Hvis en tabell har en sammensatt primærnøkkel, skal hele den sammensatte primærnøkkelen determinere de andre attributtene og ikke bare en del av den.", "Hvis en tabell har en sammensatt primærnøkkel, skal hele den sammensatte fremmednøkkelen determinere de andre attributtene og ikke bare en del av den."], answer: 1 },
+            { question: "Hva er et attributt?", options: ["Egenskaper til en entitet", "Egenskaper til en verdi", "Egenskaper til en datatype"], answer: 0 },
+            { question: "Forklar hva som skjer i denne koden: SELECT B.BestillingsID, K.Navn AS Kunde, P.Navn AS Produkt, BL.Antall FROM Bestilling B JOIN Kunde K ON B.KundeID = K.KundeID JOIN Bestillingslinje BL ON B.BestillingsID = BL.BestillingsID JOIN Produkt P ON BL.ProduktID = P.ProduktID ORDER BY B.BestillingsID;", options: ["koden henter bestillings-ID, kundens navn, produktnavn og antall bestilt. Den kobler sammen Bestilling, Kunde, Bestillingslinje og Produkt, og sorterer resultatet etter bestillings-ID.", "koden henter bare bestillings-ID", "koden henter produktnavn og kundens navn og sorterer resultatet etter produktnavn."], answer: 0 },
+            { question: "Forklar dette utsagnet: “I swear to use the key, the whole key, and nothing but the key", options: ["ALT SKAL GÅ GJENNOM / ASSOSIERES MED PRIMÆR NØKKELEN", "Alt kan lagres uten å referere til nøkkelen", "Alle attributter skal ha en nøkkel for å identifisere informasjon."], answer: 0 },
+            { question: "Hva betyr determinering?", options: ["At en nøkkel alltid er bestemt av en annen nøkkel i en annen tabell", "At alle verdier i en tabell må være unike og ikke kan gjentas", "At verdien i ett attributt eller en kombinasjon av attributter entydig bestemmer verdien i et annet attributt"], answer: 2 },
+            { question: "Hva er forskjellen mellom en fremmednøkkel og en primærnøkkel i en tabell?", options: ["Primærnøkkelen identifiserer unikt en rad i sin egen tabell, mens fremmednøkkelen refererer til primærnøkkelen i en annen tabell", "Primærnøkkelen brukes til å koble sammen tabeller, mens fremmednøkkelen sikrer unike verdier i sin egen tabell", "Primærnøkkelen og fremmednøkkelen er alltid de samme i relasjonsdatabaser"], answer: 0 },
+            { question: "1. normalform er?", options: ["Primærnøkkelen skal determinere alle de andre attributtene. Det skal ikke være repeterende attributter i datamodellen. Alle attributter skal være atomiske", "Primærnøkkelen skal ikke determinere alle de andre attributtene. Det skal være repeterende attributter i datamodellen. Alle attributter skal være atomiske", "Primærnøkkelen skal determinere alle de andre entitetene. Det skal ikke være repeterende realsjoner i datamodellen. Alle attributter skal være atomiske"], answer: 0 },
+            { question: "Hva er SQL kode for å finne alle forekomster i en tabell?", options: ["Select all from \"tabellnavn\";", "Select * from \"tabellnavn\";", "Select # from \"tabellnavn\";"], answer: 1 },
+            { question: "Hva er et DBMS?", options: ["Programmet som lar oss lagre og behandle data i en database?", "Datamaskinen som lar oss lagre og behandle data i en database?", "Programmet og datamaskinen som lar oss lagre og behandle data i en database?"], answer: 0 },
+            { question: "Hva er en primærnøkkel?", options: ["En tilfeldig valgt verdi som fylles inn automatisk i tabellen", "En unik identifikator for en rad i en tabell", "En nøkkel som alltid peker til en annen tabell"], answer: 1 },
+            { question: "Hva er en database?", options: ["Ustrukturert samling av data", "Strukturert samling av data", "Relativt strukturert samling av data"], answer: 1 },
+            { question: "Hva er en verdi?", options: ["En kobling mellom to entiteter", "Det (data) som skrives inn i en database feks \"Bente\"", "Det som beskriver en relasjon i en database, feks \"Bor på\""], answer: 1 },
+            { question: "Hvilken typer nøkkelbegreper har vi?", options: ["Primærnøkkel, Sekundærnøkkel, Relasjonsnøkkel og Inndatanøkkel", "Primærnøkkel, Sekundærnøkkel, Tertiærnøkkel og Inndatanøkkel", "Primærnøkkel, Fremmednøkkel, Kandidatnøkkel og Sammensatt nøkkel"], answer: 2 },
+            { question: "Hva er SQL koden for å sette inn data i en tabell?", options: ["INSERT INTO tabellnavn (kolonne1, kolonne2) VALUES ('verdi1', 'verdi2');", "INSERT TO tabellnavn (kolonne1, kolonne2) VERDIER ('verdi1', 'verdi2')", "INSERT tabellnavn (kolonne1, kolonne2) DATA ('verdi1', 'verdi2');"], answer: 0 }
+        ];
+
+        const questionsDiv = document.getElementById("questions");
+
+        quizData.forEach((q, index) => {
+            const questionDiv = document.createElement("div");
+            questionDiv.classList.add("question");
+            questionDiv.innerHTML = `<p>${q.question}</p>`;
+            q.options.forEach((option, i) => {
+                questionDiv.innerHTML += `
+                    <label>
+                        <input type="radio" name="question${index}" value="${i}"> ${option}
+                    </label><br>
+                `;
+            });
+            questionsDiv.appendChild(questionDiv);
+        });
+
+        document.getElementById("quizForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let score = 0;
+            let resultsHTML = "";
+            quizData.forEach((q, index) => {
+                const selected = document.querySelector(`input[name=question${index}]:checked`);
+                if (selected) {
+                    const answerIndex = parseInt(selected.value);
+                    if (answerIndex === q.answer) {
+                        score++;
+                        resultsHTML += `<p class='correct'>Spørsmål ${index + 1}: Riktig!</p>`;
+                    } else {
+                        resultsHTML += `<p class='incorrect'>Spørsmål ${index + 1}: Feil! Riktig svar er: ${q.options[q.answer]}</p>`;
+                    }
+                } else {
+                    resultsHTML += `<p class='incorrect'>Spørsmål ${index + 1}: Ikke besvart!</p>`;
+                }
+            });
+            document.getElementById("results").innerHTML = resultsHTML;
+        });
+    </script>
+</body>
+</html>
